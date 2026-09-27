@@ -10,26 +10,62 @@ public class Master {
         System.out.println("     SISTEMA GENÉRICO DE ANÁLISE DE RECORRÊNCIA");
         System.out.println("=================================================");
         System.out.println();
-        System.out.println("A recorrência deve ter o formato:");
-        System.out.println("   T(n) = a * T(n op b) + g(n)");
-        System.out.println();
 
-        System.out.print("Digite o valor de 'a' (quantidade de chamadas recursivas): ");
-        int a = scanner.nextInt();
-
-        System.out.println();
-        System.out.println("Escolha a operação dentro de T( ):");
-        System.out.println("  1 - Divisão   -> T(n/b)");
-        System.out.println("  2 - Subtração -> T(n-b)");
+        System.out.println("Quantos termos recursivos T( ) a equação possui? ");
+        System.out.println("  1 ou 2? ");
         System.out.print("Opção: ");
-        int operacao = scanner.nextInt();
-        boolean ehDivisao = (operacao == 1);
+        int quantidadeTermos = scanner.nextInt();
 
-        System.out.print("Digite o valor de 'b': ");
-        int b = scanner.nextInt();
+        int a;
+        int b;
+        boolean ehDivisao;
+
+        if (quantidadeTermos == 1) {
+
+            System.out.println();
+            System.out.println("Escolha a operação dentro de T( ):");
+            System.out.println("  1 - Divisão   -> T(n/b)");
+            System.out.println("  2 - Subtração -> T(n-b)");
+            System.out.print("Opção: ");
+            int operacao = scanner.nextInt();
+            ehDivisao = (operacao == 1);
+
+            System.out.print("Digite o valor de 'a': ");
+            a = scanner.nextInt();
+
+            System.out.print("Digite o valor de 'b': ");
+            b = scanner.nextInt();
+
+        } else if (quantidadeTermos == 2) {
+
+            System.out.println();
+            System.out.println("--- Termo 1: a1 * T(n op1 b1) ---");
+            int a1 = lerCoeficienteA(scanner, 1);
+            boolean div1 = lerOperacao(scanner, 1);
+            int b1 = lerB(scanner, 1);
+
+            System.out.println();
+            System.out.println("--- Termo 2: a2 * T(n op2 b2) ---");
+            int a2 = lerCoeficienteA(scanner, 2);
+            boolean div2 = lerOperacao(scanner, 2);
+            int b2 = lerB(scanner, 2);
+
+            boolean termo1Domina = termo1Domina(div1, b1, div2, b2);
+
+            a = a1 + a2;
+            ehDivisao = termo1Domina ? div1 : div2;
+            b = termo1Domina ? b1 : b2;
+
+            imprimirExplicacaoDoisTermos(a1, div1, b1, a2, div2, b2, a, ehDivisao, b);
+
+        } else {
+            System.out.println("[ERRO] Opção inválida.");
+            scanner.close();
+            return;
+        }
 
         System.out.println();
-        System.out.println("Escolha o grau de g(n) (custo fora da recursão):");
+        System.out.println("Escolha o grau de g(n):");
         System.out.println("  0 - Constante  (g(n) = c)");
         System.out.println("  1 - Linear     (g(n) = c*n)");
         System.out.println("  2 - Quadrática (g(n) = c*n^2)");
@@ -40,7 +76,7 @@ public class Master {
         long c = scanner.nextLong();
 
         System.out.println();
-        System.out.print("Informe o valor de 'n' no caso base (ex: 1, 2, 3...): ");
+        System.out.print("Informe o valor de 'n' no caso base: ");
         long n0 = scanner.nextLong();
 
         System.out.print("Informe o valor de T(" + n0 + ") (o custo desse caso base): ");
@@ -62,6 +98,54 @@ public class Master {
     }
 
 
+    private static int lerCoeficienteA(Scanner scanner, int numeroTermo) {
+        System.out.print("Digite o valor de 'a" + numeroTermo + "' (coeficiente do termo " + numeroTermo + "): ");
+        return scanner.nextInt();
+    }
+
+    private static boolean lerOperacao(Scanner scanner, int numeroTermo) {
+        System.out.println("Operação do termo " + numeroTermo + ":");
+        System.out.println("  1 - Divisão   -> T(n/b" + numeroTermo + ")");
+        System.out.println("  2 - Subtração -> T(n-b" + numeroTermo + ")");
+        System.out.print("Opção: ");
+        int operacao = scanner.nextInt();
+        return (operacao == 1);
+    }
+
+    private static int lerB(Scanner scanner, int numeroTermo) {
+        System.out.print("Digite o valor de 'b" + numeroTermo + "': ");
+        return scanner.nextInt();
+    }
+
+    private static boolean termo1Domina(boolean div1, int b1, boolean div2, int b2) {
+        if (div1 != div2) {
+            return !div1; 
+        }
+        return b1 <= b2;
+    }
+
+    private static void imprimirExplicacaoDoisTermos(
+            int a1, boolean div1, int b1,
+            int a2, boolean div2, int b2,
+            int aCombinado, boolean ehDivisaoDominante, int bDominante) {
+
+        String t1 = (a1 == 1 ? "" : a1 + "*") + "T(n" + (div1 ? "/" : " - ") + b1 + ")";
+        String t2 = (a2 == 1 ? "" : a2 + "*") + "T(n" + (div2 ? "/" : " - ") + b2 + ")";
+        String termoDominanteStr = "T(n" + (ehDivisaoDominante ? "/" : " - ") + bDominante + ")";
+
+        System.out.println();
+        System.out.println("=================================================");
+        System.out.println("PASSO EXTRA - RECORRÊNCIA COM DOIS TERMOS RECURSIVOS");
+        System.out.println("=================================================");
+        System.out.println("Equação original: T(n) = " + t1 + " + " + t2 + " + g(n)");
+        System.out.println("Termo dominante: " + termoDominanteStr);
+        System.out.println();
+        System.out.println("Limite Superior:");
+        System.out.println("T(n) <= " + t1 + " + " + t2 + " + g(n)");
+        System.out.println("     <= " + aCombinado + "*" + termoDominanteStr + " + g(n)");
+    }
+
+   
     public static void processar(
             int a,
             int b,
@@ -85,7 +169,7 @@ public class Master {
         imprimirEtapa5(a, b, ehDivisao, d);
     }
 
-   
+
     public static void imprimirEtapas1e2e3(
             int a,
             int b,
@@ -219,7 +303,7 @@ public class Master {
         return "somatorio de j=0 ate k-1 de [ " + coefA + termoG(c, d, arg) + " ]";
     }
 
-  
+
     private static void imprimirEtapa4(
             int a,
             int b,
